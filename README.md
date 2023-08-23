@@ -18,5 +18,4 @@
     __4. Giảng viên hướng dẫn:__ TS.Bùi Huy Kiên.  
   
 ### B. Quá trình gây dựng đề tài nghiên cứu  
- __1. Các trang thiết bị đóng góp cho đề tài__
- - 
+ __1. Các trang thiết bị đóng góp cho đề tài__  
