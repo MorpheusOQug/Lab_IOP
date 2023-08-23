@@ -1,2 +1,4 @@
-# Lab_IOP: Phòng nghiên cứu khoa học Internet Of Plan
+# Lab_IOP
+
+Thiết kế và phát triển phần mềm theo dõi nông nghiệp từ xa
  
