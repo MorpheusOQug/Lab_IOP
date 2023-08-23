@@ -20,7 +20,6 @@
 ### B. Quá trình gây dựng đề tài nghiên cứu  
  __1. Các trang thiết bị đóng góp cho đề tài__  
  - ESP32  
- ![ESP32](https://www.google.com.vn/url?sa=i&url=https%3A%2F%2Fwww.cytrontech.vn%2Fp-nodemcu-esp32&psig=AOvVaw3XB23Dl4EkcKoKeSAND7LL&ust=1692888375038000&source=images&cd=vfe&opi=89978449&ved=0CBAQjRxqFwoTCNDf9-KC84ADFQAAAAAdAAAAABAE)
  - ESP32 Cam  
  - Module Relay 2 kênh 5V  
  - Arduino IDE  
