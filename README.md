@@ -22,16 +22,29 @@
  - ESP32  
  ![Alt text](image.png)
  - ESP32 Cam  
+ ![Alt text](image-1.png)
  - Module Relay 2 kênh 5V  
+ ![Alt text](image-2.png)
  - Arduino IDE  
+ ![Alt text](image-3.png)
  - Máy bơm nước mini 3-5V  
+ ![Alt text](image-4.png)
  - Module thời gian thực RTC Ds3231  
+ ![Alt text](image-5.png)
  - Module cảm biến ánh sáng  
+ ![Alt text](image-6.png)
  - Màn hình LCD 1602 màn 16x2 xanh  
+ ![Alt text](image-7.png)
  - Màn hình OLED 0.96 inch  
+ ![Alt text](image-8.png)
  - Cảm biến độ ẩm đất  
+ ![Alt text](image-9.png)
  - Dây nguồn chuyển đổi 220V - 12V 1A  
+ ![Alt text](image-10.png)
  - Đèn LED 12V dây  
+ ![Alt text](image-11.png)
+ - FTDI Programming Board  
+ ![Alt text](image-12.png)
   
   __2. Quá trình lắp ráp__  
   ![Hình ảnh minh họa sơ đồ lắp ráp]()
