@@ -20,6 +20,7 @@
 ### B. Quá trình gây dựng đề tài nghiên cứu  
  __1. Các trang thiết bị đóng góp cho đề tài__  
  - ESP32  
+ ![Hình ảnh minh họa]("C:\Users\Asus\Pictures\New folder\tải xuống.jpg")
  - ESP32 Cam  
  - Module Relay 2 kênh 5V  
  - Arduino IDE  
@@ -32,5 +33,5 @@
  - Dây nguồn chuyển đổi 220V - 12V 1A  
  - Đèn LED 12V dây  
   
-  ___2. Quá trình lắp ráp__  
-  
+  __2. Quá trình lắp ráp__  
+  ![Hình ảnh minh họa sơ đồ lắp ráp]()
