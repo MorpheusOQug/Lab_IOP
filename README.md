@@ -2,12 +2,12 @@
 
 ### A. Phần giới thiệu  
  __I. Thành viên nhóm.__  
-    Bùi Thế Trung (Sinh viên chịu trách nhiệm chính)  
-    Phạm Minh Tuấn  
-    Phạm Quang Anh  
-    Nguyễn Thái Sơn  
-    Nguyễn Đăng Phúc Thành  
-    Trần Hoàng Hiệp  
+&nbsp;&nbsp;Bùi Thế Trung (Sinh viên chịu trách nhiệm chính)  
+&nbsp;&nbsp;Phạm Minh Tuấn  
+&nbsp;&nbsp;Phạm Quang Anh  
+&nbsp;&nbsp;Nguyễn Thái Sơn  
+&nbsp;&nbsp;Nguyễn Đăng Phúc Thành  
+&nbsp;&nbsp;Trần Hoàng Hiệp  
   
  __II. Dự án__  
     __1. Tên đề tài:__  
@@ -19,4 +19,3 @@
   
 ### B. Quá trình gây dựng đề tài nghiên cứu  
  __1. Các trang thiết bị đóng góp cho đề tài__
- - 
