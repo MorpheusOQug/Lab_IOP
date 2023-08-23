@@ -47,4 +47,4 @@
  ![!\[Alt text\](image-12.png)](Image/image-12.png)
   
   __2. Quá trình lắp ráp__  
-  ![Hình ảnh minh họa sơ đồ lắp ráp]()
+  ![Hình ảnh minh họa sơ đồ lắp ráp](Image/So_do_minh_hoa.png)
