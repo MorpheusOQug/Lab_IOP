@@ -31,3 +31,6 @@
  - Cảm biến độ ẩm đất  
  - Dây nguồn chuyển đổi 220V - 12V 1A  
  - Đèn LED 12V dây  
+  
+  ___2. Quá trình lắp ráp__  
+  
