@@ -1,7 +1,7 @@
 # Lab_IOP
 
-#### A. Phần giới thiệu  
- __I. Thành viên nhóm.__ 
+### A. Phần giới thiệu  
+ __I. Thành viên nhóm.__  
     - Bùi Thế Trung (Sinh viên chịu trách nhiệm chính)  
     - Phạm Minh Tuấn  
     - Phạm Quang Anh  
@@ -17,6 +17,6 @@
     __3. Lĩnh vực khoa học:__ Khoa học tự nhiên và kỹ thuật.  
     __4. Giảng viên hướng dẫn:__ TS.Bùi Huy Kiên.  
   
-#### B. Qúa trình gây dựng đề tài nghiên cứu  
+### B. Qúa trình gây dựng đề tài nghiên cứu  
  __1. Các trang thiết bị đóng góp cho đề tài__
  - 
