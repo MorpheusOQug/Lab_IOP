@@ -17,22 +17,22 @@
  - LCD LED + đến 5V thông qua điện trở 220 ohm  
  - LCD LED- đến GND  
  Ngoài ra, nối một chiết áp 10k đến +5V và GND, với đầu ra (đầu ra) của nó tới chân VO của màn hình LCD (chân 3).  
- - Mạch:  
- C1:  
+ - __Mạch:__  
+ #### C1:  
 ![!\[Alt text\](image.png)](../../Image/LCD_1.png)  
- C2:  
+ #### C2:  
 ![ !\[Alt text\](image.png)](../../Image/LCD_2.png)  
- C3:
+ #### C3:
 ![ !\[Alt text\](image.png)](../../Image/LCD_3.png)  
 
-Đường link github chạy test đơn giản với Arduino: [Title](ICDwithArduino.ino)  
-Đường link github code: [Title](ICDwithArduino.ino)  
- - Mạch với chip I2C:  
+Đường link code test: [Test LCD với Arduino gián tiếp](ICDwithArduino.ino)  
+Đường link code test: [Test LCD trực tiếp với Arduino](ICDwithArduino.ino)  
+ - __Mạch với chip I2C:__  
 ![!\[Alt text\](image.png)](../../Image/LCDvsI2C_1.png)  
   
-Đường link gihub chạy với chip I2C test đơn giản: [Title](LCD_I2C.ino)  
+Đường link code test: [LCD với chip I2C](LCD_I2C.ino)  
   
- - Sơ đồ:
+ - __Sơ đồ:__  
 ![ !\[Alt text\](image.png)](../../Image/LCD_M.png)  
 
 
