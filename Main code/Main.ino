@@ -72,11 +72,13 @@ int pumpStatus = LOW;
 #define soilMoisturePin 33 // Chân 33
 
 // Light Sensor
-#define LIGHT_SENSOR_PIN 18 // chân 5
-int Lightvalue;
-#define LED_PIN1 35 // chân 15
-#define LED_PIN2 14 // chân 15
-#define LED_PIN3 13 // chân 15
+#define LIGHT_SENSOR_PIN 34 // chân 5
+#define LED1_PIN 13 // chân 15
+#define LED2_PIN 14 // chân 15
+#define LED3_PIN 2 // chân 15
+int lightThreshold1 = 80; // Ngưỡng cường độ ánh sáng để tắt cả ba đèn LED
+int lightThreshold2 = 40; // Ngưỡng cường độ ánh sáng để bật đèn LED 1 và đèn LED 2
+int lightThreshold3 = 10; // Ngưỡng cường độ ánh sáng để bật cả ba đèn LED
 
 unsigned long ledOnTime = 2 * 60 * 60 * 1000; // Thời gian bật LED (2 giờ)
 
@@ -135,9 +137,9 @@ void setup() {
     pinMode(soilMoisturePin, INPUT);
 
     pinMode(LIGHT_SENSOR_PIN, INPUT);
-    pinMode(LED_PIN1, OUTPUT);
-    pinMode(LED_PIN2, OUTPUT);
-    pinMode(LED_PIN3, OUTPUT);
+    pinMode(LED1_PIN, OUTPUT);
+    pinMode(LED2_PIN, OUTPUT);
+    pinMode(LED3_PIN, OUTPUT);
 
     dht.begin();
 }
@@ -198,33 +200,44 @@ void loop() {
     }
 // Hàm cảm biến ánh sáng
     int lightValue = analogRead(LIGHT_SENSOR_PIN); // Đọc giá trị từ cảm biến ánh sáng
+    lightValue = map(lightValue, 0, 4095, 0, 100);
+    lightValue = (lightValue - 100) * -1;
     Blynk.virtualWrite(V2, lightValue);
     Serial.print("Light: ");
     Serial.println(lightValue);
 
-    if (lightValue <= 500 ) { // Nếu cường độ ánh sáng nhỏ hơn ngưỡng
-        digitalWrite(LED_PIN1, HIGH); // Bật rơle 1
-        digitalWrite(LED_PIN2, HIGH); // Tắt rơle 2
-        digitalWrite(LED_PIN3, LOW); // Tắt rơle 3
-    } else if (lightValue < 200 ) { // Nếu cường độ ánh sáng trong khoảng ngưỡng và ngưỡng + 100
-        digitalWrite(LED_PIN1, HIGH); // Bật rơle 1
-        digitalWrite(LED_PIN2, LOW); // Tắt rơle 2
-        digitalWrite(LED_PIN3, HIGH); // Tắt rơle 3
-    } else if (lightValue < 10 ) { 
-        digitalWrite(LED_PIN1, HIGH); // Bật rơle 1
-        digitalWrite(LED_PIN2, HIGH); // Tắt rơle 2
-        digitalWrite(LED_PIN3, HIGH); // Tắt rơle 3
+    if (lightValue > lightThreshold1) { // Nếu cường độ ánh sáng lớn hơn ngưỡng 1
+        digitalWrite(LED1_PIN, HIGH); // Tắt LED 1
+        digitalWrite(LED2_PIN, HIGH); // Tắt LED 2
+        digitalWrite(LED3_PIN, HIGH); // Tắt LED 3
+    } else if (lightValue >= lightThreshold2 && lightValue <= lightThreshold1) { // Nếu cường độ ánh sáng trong khoảng ngưỡng 2 và ngưỡng 1
+        digitalWrite(LED1_PIN, LOW); // Bật LED 1
+        digitalWrite(LED2_PIN, HIGH); // Tắt LED 2
+        digitalWrite(LED3_PIN, HIGH); // Tắt LED 3
+    } else if (lightValue >= lightThreshold3 && lightValue < lightThreshold2) { // Nếu cường độ ánh sáng trong khoảng ngưỡng 3 và ngưỡng 2
+        digitalWrite(LED1_PIN, LOW); // Bật LED 1
+        digitalWrite(LED2_PIN, LOW); // Bật LED 2
+        digitalWrite(LED3_PIN, HIGH); // Tắt LED 3
+    } else { // Nếu cường độ ánh sáng nhỏ hơn ngưỡng 3
+        digitalWrite(LED1_PIN, LOW); // Bật LED 1
+        digitalWrite(LED2_PIN, LOW); // Bật LED 2
+        digitalWrite(LED3_PIN, LOW); // Bật LED 3
+    }
+    if (millis() - ledTurnOnMillis >= ledOnTime) { // Nếu LED đang bật và đã qua khoảng thời gian ledOnTime
+        digitalWrite(LED1_PIN, LOW);
+        digitalWrite(LED2_PIN, LOW);
+        digitalWrite(LED3_PIN, LOW); // Tắt LED
     }
 
 // Cảm biến đất
-    int value = analogRead(soilMoisturePin);
-    value = map(value, 0, 4095, 0, 100);
-    value = (value - 100) * -1;
-    Blynk.virtualWrite(V8, value);
+    int Svalue = analogRead(soilMoisturePin);
+    Svalue = map(Svalue, 0, 4095, 0, 100);
+    Svalue = (Svalue - 100) * -1;
+    Blynk.virtualWrite(V8, Svalue);
     Serial.print("Soil: ");
-    Serial.println(value);
+    Serial.println(Svalue);
 
-    if (value < 20) {
+    if (Svalue < 20) {
         digitalWrite(pumpPin, HIGH);
         pumpStatus = HIGH;
         delay(5000);
@@ -267,11 +280,11 @@ void loop() {
 
     lcd.setCursor(0, 1);
     lcd.print("Soil-M: ");
-    lcd.print(value);
+    lcd.print(Svalue);
     lcd.print("%");
     
     // Hiển thị mặt trời hoặc mặt trăng và bóng đèn dựa vào giá trị cảm biến ánh sáng
-    if (Lightvalue == HIGH) { // Ban ngày
+    if (lightValue == HIGH) { // Ban ngày
         lcd.setCursor(13, 1); // Đặt vị trí mới cho mặt trời
         lcd.write(byte(0)); // Hiển thị mặt trời
         lcd.setCursor(14, 1); // Đặt vị trí mới cho bóng đèn
@@ -285,9 +298,9 @@ void loop() {
     
 // Send LCD text to Blynk app
     String lcdText = "Temp: " + String(temperature) + "C\n" + "Humidity: " + String(humidity) + "%";
-    lcdText += "\nSoil Moisture: " + String(value) + "%";
+    lcdText += "\nSoil Moisture: " + String(Svalue) + "%";
     // Hiển thị mặt trời hoặc mặt trăng và bóng đèn dựa vào giá trị cảm biến ánh sáng
-    if (Lightvalue == HIGH) { // Ban ngày
+    if (lightValue == HIGH) { // Ban ngày
         lcdText = "Day: Sun, Bulb Off";
     } else { // Ban đêm
         lcdText = "Night: Moon, Bulb On";
