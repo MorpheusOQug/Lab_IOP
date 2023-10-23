@@ -13,6 +13,17 @@
 #include <LiquidCrystal_I2C.h>
 #include <DHT.h>
 
+// Tạo ký tự tùy chỉnh cho bóng đèn
+byte bulbChar[8] = {
+  0b01110,
+  0b10001,
+  0b10001,
+  0b10001,
+  0b01110,
+  0b00000,
+  0b01110,
+};
+
 // Tạo ký tự tùy chỉnh cho mặt trời
 byte sunChar[8] = {
   0b00000,
@@ -36,8 +47,8 @@ byte moonChar[8] = {
 };
 
 // Get wifi
-char ssid[] = "VJU Guest";
-char pass[] = "Vjuguest@2022";
+char ssid[] = "VJU-FTH1";
+char pass[] = "0987654321";
 
 //LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -54,19 +65,23 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 RTC_DS3231 rtc;
 
 // PUMP
-#define pumpPin 33 // Chân 33
+#define pumpPin 26 // Chân 33
 int pumpStatus = LOW;
 
 // Soil Moisture
-#define soilMoisturePin 18 // Chân 18
+#define soilMoisturePin 33 // Chân 33
 
 // Light Sensor
-#define Sensor 5 // chân 5
+#define LIGHT_SENSOR_PIN 5 // chân 5
 int Lightvalue;
-#define Ledpin 15 // chân 15
+#define LED_PIN 15 // chân 15
+int lightThreshold = 300; // Ngưỡng cường độ ánh sáng để bật LED
+unsigned long ledOnTime = 2 * 60 * 60 * 1000; // Thời gian bật LED (2 giờ)
+
+unsigned long ledTurnOnMillis; // Biến lưu thời điểm bật LED
 
 // Water sensor
-#define SIGNAL_PIN  32// Analog pin for reading sensor value
+#define SIGNAL_PIN  35// Analog pin for reading sensor value
 float waterIndex = 0.0;
 // Define the minimum and maximum values that your sensor can read
 const int MIN_SENSOR_VALUE = 0;   // Replace with your actual minimum value
@@ -95,6 +110,7 @@ void setup() {
 
     lcd.createChar(0, sunChar);
     lcd.createChar(1, moonChar);
+    lcd.createChar(2, bulbChar); // Tạo ký tự tùy chỉnh cho bóng đèn
 
     if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
@@ -114,13 +130,13 @@ void setup() {
 
     Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
 
-    pinMode(Ledpin, OUTPUT);
-    digitalWrite(Ledpin, LOW);
-
     pinMode(pumpPin, OUTPUT);
     digitalWrite(pumpPin, pumpStatus);
 
     pinMode(soilMoisturePin, INPUT);
+
+    pinMode(LIGHT_SENSOR_PIN, INPUT);
+    pinMode(LED_PIN, OUTPUT);
 
     dht.begin();
 }
@@ -128,31 +144,40 @@ void setup() {
 void displayTime(void) {
 DateTime now = rtc.now();
 
+// Xóa màn hình
 display.clearDisplay();
-display.setTextSize(1);             // Normal : pixel scale
+
+// Hiển thị ngày, tháng, năm và thời gian
 display.setCursor(0,0);
-display.setTextColor(SSD1306_WHITE);        // Draw white text
-display.print("void loop Robotech");
-display.setCursor(15,15);            // Start at top-left corner
 display.print(now.year(), DEC);
 display.print('/');
 display.print(now.month(), DEC);
 display.print('/');
 display.print(now.day(), DEC);
-
-display.print(" ");
-
-display.print(daysOfTheWeek[now.dayOfTheWeek()]);
-display.println();
-display.println();
-display.setTextSize(2);
 display.print(" ");
 display.print(now.hour(), DEC);
 display.print(':');
 display.print(now.minute(), DEC);
 display.print(':');
 display.print(now.second(), DEC);
-display.println();
+
+// Hiển thị mặt trời hoặc mặt trăng và bóng đèn dựa vào giá trị cảm biến ánh sáng
+if (Lightvalue == HIGH) { // Ban ngày
+    // Vẽ mặt trời
+    display.drawCircle(64, 16, 8, WHITE); // Vẽ một hình tròn tại vị trí (64,16) với bán kính 8 pixel
+    // Vẽ bóng đèn tắt
+    display.drawRect(120, 12, 8, 10, WHITE); // Vẽ phần thân của bóng đèn
+    display.drawLine(124, 22, 124, 26, WHITE); // Vẽ phần chân của bóng đèn
+} else { // Ban đêm
+    // Vẽ mặt trăng
+    display.drawCircle(64, 16, 8, WHITE); // Vẽ hình tròn lớn
+    display.fillCircle(70, 16, 8, BLACK); // Vẽ hình tròn nhỏ để tạo hiệu ứng mặt trăng lưỡi liềm
+    // Vẽ bóng đèn sáng
+    display.drawRect(120, 12, 8, 10, WHITE); // Vẽ phần thân của bóng đèn
+    display.drawLine(124, 22, 124, 26, WHITE); // Vẽ phần chân của bóng đèn
+    display.drawLine(120, 14, 128, 14, WHITE); // Vẽ phần sáng của bóng đèn
+}
+
 
 String currentTime = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 String currentDate = String(now.day()) + "/" + String(now.month()) + "/" + String(now.year());
@@ -179,22 +204,26 @@ void loop() {
         pumpStatus = LOW;
     }
 // Hàm cảm biến ánh sáng
-    Lightvalue = digitalRead(Sensor);
-    Blynk.virtualWrite(V6, Lightvalue);
+    int lightValue = analogRead(LIGHT_SENSOR_PIN); // Đọc giá trị từ cảm biến ánh sáng
 
-    if (Lightvalue == HIGH)
-        digitalWrite(Ledpin, HIGH);
-    else
-        digitalWrite(Ledpin, LOW);
+    if (lightValue < lightThreshold && digitalRead(LED_PIN) == LOW) { // Nếu cường độ ánh sáng nhỏ hơn ngưỡng và LED đang tắt
+        digitalWrite(LED_PIN, HIGH); // Bật LED
+        ledTurnOnMillis = millis(); // Lưu lại thời điểm bật LED
+    }
+
+    if (digitalRead(LED_PIN) == HIGH && millis() - ledTurnOnMillis >= ledOnTime) { // Nếu LED đang bật và đã qua khoảng thời gian ledOnTime
+        digitalWrite(LED_PIN, LOW); // Tắt LED
+    }
+
 // Cảm biến đất
-    int pValue = analogRead(soilMoisturePin);
-    int soilMoistureValue = map(pValue, 0, 4095, 0, 100);
-    soilMoistureValue = (soilMoistureValue - 100) * -1;
-    Blynk.virtualWrite(V8, soilMoistureValue);
+    int value = analogRead(soilMoisturePin);
+    value = map(value, 0, 4095, 0, 100);
+    value = (value - 100) * -1;
+    Blynk.virtualWrite(V8, value);
     Serial.print("Soil: ");
-    Serial.println(soilMoistureValue);
+    Serial.println(value);
 
-    if (soilMoistureValue < 20) {
+    if (value < 20) {
         digitalWrite(pumpPin, HIGH);
         pumpStatus = HIGH;
         delay(5000);
@@ -221,12 +250,11 @@ void loop() {
 // Rain water sensor
     int rawValue = analogRead(SIGNAL_PIN); // Read the analog value from the sensor
 
-    waterIndex = map(rawValue, MIN_SENSOR_VALUE, MAX_SENSOR_VALUE, 0, 100) / 100.0;
-
+    waterIndex = map(rawValue, 0, 4095, 0, 100);
+    waterIndex = (waterIndex - 100) * -1;
+    Blynk.virtualWrite(V3, waterIndex);
     Serial.print("\nWater Index: ");
     Serial.println(waterIndex);
-
-    Blynk.virtualWrite(V3, waterIndex * 100); // Send water index (percentage) to Blynk
 
 // Hàm ghi LCD 
     lcd.clear();
@@ -239,33 +267,31 @@ void loop() {
 
     lcd.setCursor(0, 1);
     lcd.print("Soil-M: ");
-    lcd.print(soilMoistureValue);
+    lcd.print(value);
     lcd.print("%");
-
-    // Hiển thị hình chiếc quạt chuyển động (ví dụ: sử dụng ký tự '>' để biểu diễn quạt)
-    static int fanPos = 0;
-    const char fanAnim[] = ">-<";
     
-    // Hiển thị mặt trời hoặc mặt trăng dựa vào giá trị cảm biến ánh sáng
-    if (Lightvalue == HIGH) {
-        lcd.setCursor(13, 1); // Đặt vị trí mới cho mặt trời/mặt trăng
+    // Hiển thị mặt trời hoặc mặt trăng và bóng đèn dựa vào giá trị cảm biến ánh sáng
+    if (Lightvalue == HIGH) { // Ban ngày
+        lcd.setCursor(13, 1); // Đặt vị trí mới cho mặt trời
         lcd.write(byte(0)); // Hiển thị mặt trời
-        lcd.setCursor(14, 1); // Đặt vị trí mới cho quạt
-        lcd.write(fanAnim[fanPos]); // Hiển thị quạt
-    } else {
-        lcd.setCursor(13, 1); // Đặt vị trí mới cho mặt trời/mặt trăng
+        lcd.setCursor(14, 1); // Đặt vị trí mới cho bóng đèn
+        lcd.print(" "); // Hiển thị bóng đèn tắt (không hiển thị gì cả)
+    } else { // Ban đêm
+        lcd.setCursor(13, 1); // Đặt vị trí mới cho mặt trăng
         lcd.write(byte(1)); // Hiển thị mặt trăng
-        lcd.setCursor(14, 1); // Đặt vị trí mới cho quạt
-        lcd.write(fanAnim[fanPos]); // Hiển thị quạt
+        lcd.setCursor(14, 1); // Đặt vị trí mới cho bóng đèn
+        lcd.write(byte(2)); // Hiển thị bóng đèn sáng
     }
     
-    fanPos = (fanPos + 1) % strlen(fanAnim); // Cập nhật vị trí quạt cho lần lặp tiếp theo
-
 // Send LCD text to Blynk app
     String lcdText = "Temp: " + String(temperature) + "C\n" + "Humidity: " + String(humidity) + "%";
-    lcdText += "\nSoil Moisture: " + String(soilMoistureValue) + "%";
-    lcdText += "\nFan: " + String(fanAnim[fanPos]);
-    lcdText += (Lightvalue == HIGH) ? "\nSun" : "\nMoon";
+    lcdText += "\nSoil Moisture: " + String(value) + "%";
+    // Hiển thị mặt trời hoặc mặt trăng và bóng đèn dựa vào giá trị cảm biến ánh sáng
+    if (Lightvalue == HIGH) { // Ban ngày
+        lcdText = "Day: Sun, Bulb Off";
+    } else { // Ban đêm
+        lcdText = "Night: Moon, Bulb On";
+    }
     Blynk.virtualWrite(V9, lcdText);
 
     
@@ -273,7 +299,7 @@ void loop() {
 }
 
 // Hàm này sẽ được gọi mỗi khi chúng ta ghi vào chân ảo V8 từ ứng dụng Blynk
-BLYNK_WRITE(V8) {
+BLYNK_WRITE(V7) {
     int pinData = param.asInt(); // Nhận dữ liệu dưới dạng số nguyên
 
     if (pinData == 1) {
@@ -285,4 +311,10 @@ BLYNK_WRITE(V8) {
         pumpStatus = LOW;
         manualMode = false; // Chuyển về chế độ tự động
     }
+}
+
+BLYNK_WRITE(V6) {
+    int pinData = param.asInt(); // Nhận dữ liệu dưới dạng số nguyên
+
+    ledOnTime = pinData * 60 * 60 * 1000; // Cập nhật thời gian bật LED theo giá trị nhận được từ Blynk app
 }
